@@ -1,5 +1,6 @@
 from IPython import display
 from matplotlib import pyplot as plt
+import numpy as np
 
 def use_svg_display(): 
     """Use the svg format to display a plot in Jupyter.""" 
@@ -21,8 +22,7 @@ def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
     if legend: 
         axes.legend(legend) 
         axes.grid()
-        
-# Saved in the d2l package for later use
+
 def plot(X, Y=None, xlabel=None, ylabel=None, legend=None, xlim=None,
          ylim=None, xscale='linear', yscale='linear',
          fmts=('-', 'm--', 'g-.', 'r:'), figsize=(3.5, 2.5), axes=None):
@@ -53,3 +53,10 @@ def plot(X, Y=None, xlabel=None, ylabel=None, legend=None, xlim=None,
         else:
             axes.plot(y, fmt)
     set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
+    
+def synthetic_data(w, b, num_examples): 
+    """Generate y = X w + b + noise.""" 
+    X = np.random.normal(0, 1, (num_examples, len(w))) 
+    y = np.dot(X, w) + b 
+    y += np.random.normal(0, 0.01, y.shape) 
+    return X, y
