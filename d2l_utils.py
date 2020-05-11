@@ -1,6 +1,7 @@
 from IPython import display
 from matplotlib import pyplot as plt
 import numpy as np
+import torch
 
 def use_svg_display(): 
     """Use the svg format to display a plot in Jupyter.""" 
@@ -60,3 +61,26 @@ def synthetic_data(w, b, num_examples):
     y = np.dot(X, w) + b 
     y += np.random.normal(0, 0.01, y.shape) 
     return X, y
+
+def linreg(inputs, W, b):
+    return torch.mm(inputs, W) + b
+
+def squared_loss(y_hat, y):
+    return (y_hat - y.reshape(y_hat.shape)) ** 2 / 2
+
+def sgd(params, lr, batch_size):
+    for param in params:
+        param[:] = param - lr * param.grad / batch_size
+
+def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
+    """Plot a list of images."""
+    figsize = (num_cols * scale, num_rows * scale)
+    _, axes = plt.subplots(num_rows, num_cols, figsize=figsize)
+    axes = axes.flatten()
+    for i, (ax, img) in enumerate(zip(axes, imgs)):
+        ax.imshow(img.numpy())
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        if titles:
+            ax.set_title(titles[i])
+    return axes
