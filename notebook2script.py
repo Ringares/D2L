@@ -29,7 +29,7 @@ def getSortedFiles(allFiles, upTo=None):
     if upTo is not None: ret = [f for f in ret if str(f)<=str(upTo)]
     return sorted(ret)
 
-def notebook2script(fname=None, allFiles=None, upTo=None):
+def notebook2script(fname=None, tar_fname=None, allFiles=None, upTo=None):
     '''Finds cells starting with `#export` and puts them into a new module
        + allFiles: convert all files in the folder
        + upTo: convert files up to specified one included
@@ -43,17 +43,17 @@ def notebook2script(fname=None, allFiles=None, upTo=None):
     # initial checks
     if (allFiles is None) and (upTo is not None): allFiles=True # Enable allFiles if upTo is present
     if (fname is None) and (not allFiles): print('Should provide a file name')
-    if not allFiles: notebook2scriptSingle(fname)
+    if not allFiles: notebook2scriptSingle(fname, tar_fname)
     else:
         print('Begin...')
         [notebook2scriptSingle(f) for f in getSortedFiles(allFiles,upTo)]
         print('...End')
         
         
-def notebook2scriptSingle(fname):
+def notebook2scriptSingle(fname, tar_fname=None):
     "Finds cells starting with `#export` and puts them into a new module"
     fname = Path(fname)
-    fname_out = f'nb_{fname.stem.split(".")[0]}.py'
+    fname_out = tar_fname if tar_fname else f'nb_{fname.stem.split(".")[0]}.py'
     main_dic = json.load(open(fname,'r',encoding="utf-8"))
     code_cells = [c for c in main_dic['cells'] if is_export(c)]
     module = f'''
