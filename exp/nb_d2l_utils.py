@@ -90,3 +90,8 @@ def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
         if titles:
             ax.set_title(titles[i])
     return axes
+
+def layer_des(model, x):
+    for layer in [module for module in model.modules() if type(module) != torch.nn.Sequential][1:]:
+        x = layer(x)
+        print(layer.__class__.__name__,'Output shape:\t',x.shape)

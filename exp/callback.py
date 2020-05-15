@@ -144,6 +144,7 @@ class Callback:
         if f and f(): return True
         return False
 
+import time
 class TrainEvalCallback(Callback):
     def begin_fit(self):
         self.run.n_epochs = 0.
@@ -194,13 +195,15 @@ class AvgStats():
 
 
 class AvgStatsCallback(Callback):
-    def __init__(self, metrics):
+    def __init__(self, metrics, need_time=True):
         self.train_stats = AvgStats(metrics, True)
         self.valid_stats = AvgStats(metrics, False)
+        self.need_time = need_time
 
     def begin_epoch(self):
         self.train_stats.reset()
         self.valid_stats.reset()
+        self.run.epoch_ts = time.time()
 
     def after_loss(self):
         stats = self.train_stats if self.in_train else self.valid_stats
@@ -208,7 +211,9 @@ class AvgStatsCallback(Callback):
             stats.accumulate(self.run)
 
     def after_epoch(self):
-        print(f"epoch {self.epoch+1}: {self.train_stats} {self.valid_stats}")
+        self.run.epoch_ts = time.time() - self.run.epoch_ts
+        time_str = f"{self.run.epoch_ts:.1f} sec" if self.need_time and self.run.epoch_ts else ''
+        print(f"epoch {self.epoch+1}: {self.train_stats} {self.valid_stats} {time_str}")
 
 
 class RecordCallback(Callback):
