@@ -91,7 +91,21 @@ def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
             ax.set_title(titles[i])
     return axes
 
-def layer_des(model, x):
-    for layer in [module for module in model.modules() if type(module) != torch.nn.Sequential][1:]:
+def remove_sequential(network, all_layers=None):
+    if all_layers is None:
+        all_layers = []
+    for layer in network.children():
+        if type(layer) == nn.Sequential: # if sequential layer, apply recursively to layers in sequential layer
+            remove_sequential(layer, all_layers)
+        if list(layer.children()) == []: # if leaf node, add it to list
+            all_layers.append(layer)
+    return all_layers
+
+def layer_description(model, x):
+    for layer in remove_sequential(model):
         x = layer(x)
         print(layer.__class__.__name__,'Output shape:\t',x.shape)
+
+def find_modules(m, cond):
+    if cond(m): return [m]
+    return sum([find_modules(o,cond) for o in m.children()], [])
