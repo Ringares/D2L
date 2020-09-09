@@ -109,3 +109,32 @@ def layer_description(model, x):
 def find_modules(m, cond):
     if cond(m): return [m]
     return sum([find_modules(o,cond) for o in m.children()], [])
+
+def accuracy(out, yb):
+    return (torch.argmax(out, dim=1) == yb).float().mean()
+
+
+import sys; sys.path.insert(0, '../')
+from exp.hook import *
+
+def hook_lsuv_stats(h, module, input, output):
+    h.mean = output.data.mean().item()
+    h.std = output.data.std().item()
+
+def lsuv(model, module, xb, tol=1e-3, max_attempts=10):
+    h = ForwardHook(module, hook_lsuv_stats)
+    model(xb)
+    attemp_cnt = 0
+    while model(xb) is not None and abs(h.mean) >= tol and attemp_cnt < max_attempts:
+        module.bias.data -= h.mean
+        attemp_cnt += 1
+    attemp_cnt = 0
+    while model(xb) is not None and abs(h.std) >= 1+tol and attemp_cnt < max_attempts:
+        module.weight.data /= h.std
+        attemp_cnt += 1
+    print(h.mean, h.std)
+    h.remove()
+
+def lsuv_init(model, xb, cond=lambda:True):
+    for m in find_modules(model, cond):
+        lsuv(model, m, xb)
